@@ -1,28 +1,36 @@
-const express = require('express')
-const next = require('next')
+const app = require("express")();
+const server = require("http").Server(app);
+const io = require("socket.io")(server);
+const next = require("next");
 
-const port = parseInt(process.env.PORT, 10) || 3000
-const dev = process.env.NODE_ENV !== 'production'
-const app = next({ dev })
-const handle = app.getRequestHandler()
+const port = parseInt(process.env.PORT, 10) || 3000;
+const dev = process.env.NODE_ENV !== "production";
+const nextApp = next({ dev });
+const nextHandler = nextApp.getRequestHandler();
 
-app.prepare().then(() => {
-    const server = express()
+// fake DB
+const messages = [];
 
-    server.get('/a', (req, res) => {
-        return app.render(req, res, '/a', req.query)
-    })
+// socket.io server
+io.on("connection", socket => {
+	socket.on("hello-room", data => {
+		console.log({ data });
+		messages.push(data);
+		socket.emit("hello-room", data);
+	});
+});
 
-    server.get('/b', (req, res) => {
-        return app.render(req, res, '/b', req.query)
-    })
+nextApp.prepare().then(() => {
+	app.get("/messages/:chat", (req, res) => {
+		res.json({ messages });
+	});
 
-    server.all('*', (req, res) => {
-        return handle(req, res)
-    })
+	app.get("*", (req, res) => {
+		return nextHandler(req, res);
+	});
 
-    server.listen(port, (err) => {
-        if (err) throw err
-        console.log(`> Ready on http://localhost:${port}`)
-    })
-})
+	server.listen(port, err => {
+		if (err) throw err;
+		console.log(`> Ready on http://localhost:${port}`);
+	});
+});
