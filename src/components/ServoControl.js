@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import CircularSlider from '@jsdev63/advanced_react-circular-slider';
-import { Button, Card, CardActions, CardContent, CardHeader, Paper, Typography } from '@material-ui/core';
+import React, { useState, useEffect } from 'react';
+import { Button, Card, CardActions, CardContent, CardHeader, Slider, Typography } from '@material-ui/core';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
+import IconButton from '@material-ui/core/IconButton';
 import { makeStyles } from '@material-ui/core/styles';
 import { useTheme } from "@material-ui/core/styles";
+import useSocket from '../hooks/useSocket';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -23,14 +25,34 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ServoControl() {
 
-    const [value, setValue] = useState(0);
     const classes = useStyles();
+    const [value, setValue] = useState(0);
+    const socket = useSocket();
 
-    const theme = useTheme();
+    useEffect(() => {
+        if (socket) {
+            socket.on("hello-room", message => {
+                console.log(message)
+            });
+        }
+    }, [socket]);
 
-    function sliderChange(value) {
-        setValue(value);
+    const handleSliderChange = (event, newValue) => {
+        setValue(newValue);
+    };
+
+    const handleInputChange = (event) => {
+        setValue(event.target.value === '' ? '' : Number(event.target.value));
+    };
+
+    function emmitData() {
+        socket &&
+            socket.emit("hello-room", {
+                id: new Date().getTime(),
+                value: value
+            });
     }
+
 
     return (
         <div className={classes.root}>
@@ -38,31 +60,25 @@ export default function ServoControl() {
                 <CardHeader
                     title="Servo Controller"
                     subheader="Angular rotation to execute"
+                    action={
+                        <IconButton aria-label="settings">
+                            <MoreVertIcon />
+                        </IconButton>
+                    }
                 />
+
                 <CardContent>
-                    <CircularSlider
-                        width={400}
+                    <Typography variant="subtitle1" align="center">{value}</Typography>
+                    <Slider
+                        value={typeof value === 'number' ? value : 0}
+                        onChange={handleSliderChange}
+                        aria-labelledby="input-slider"
                         max={180}
-                        limit={180}
-                        offsetAngle={-45}
-                        labelOffset={20}
-                        direction={1}
-                        label="Angle"
-                        labelColor={theme.palette.text.primary}
-                        knobPosition="bottom"
-                        valueFontSize="2rem"
-                        progressLineCap="flat"
-                        progressSize={16}
-                        renderLabelValue={value}
-                        doubleLineColor="null"
-                        trackSize={16}
-                        knobSize={40}
-                        onChange={sliderChange}
                     />
                 </CardContent>
-            <CardActions>
-                        <Button variant="contained" color="primary">Execute</Button>
-                    </CardActions>
+                <CardActions>
+                    <Button variant="contained" color="primary" onClick={emmitData}>Execute</Button>
+                </CardActions>
             </Card>
         </div >
     )

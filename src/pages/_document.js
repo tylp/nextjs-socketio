@@ -2,6 +2,7 @@ import React from 'react';
 import Document, { Html, Head, Main, NextScript } from 'next/document';
 import { ServerStyleSheets } from '@material-ui/core/styles';
 import theme from '../styles/theme';
+import { RecoilRoot } from 'recoil';
 
 export default class MyDocument extends Document {
     render() {
@@ -16,7 +17,9 @@ export default class MyDocument extends Document {
                     />
                 </Head>
                 <body>
-                    <Main />
+                    <RecoilRoot>
+                        <Main />
+                    </RecoilRoot>
                     <NextScript />
                 </body>
             </Html>
