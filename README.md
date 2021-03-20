@@ -1,6 +1,3 @@
-# spiderbot-controller
+# nextjs-socketio
 
-## Install
-
-See the following for installation instructions :
-https://www.npmjs.com/package/rpio
+Simple boilerplate to use socket io with nextjs.
